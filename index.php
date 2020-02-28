@@ -48,7 +48,7 @@ echo $aluno;
 echo "<br/><br/>";
 */
 
-/**** Alterar um cadastro e retorná-lo na tela
+/**** Alterar um registro na tabela de cadastro e retorná-lo para tela
 $usuario = new Usuario();
 $usuario->loadByID(8);
 echo $usuario;
@@ -59,5 +59,16 @@ $usuario->update("professor", "oooooooooo");
 echo $usuario;
 echo "<br/><br/>";
 */
+
+//**** Deletar um registro na tabela de cadastro
+$usuario = new Usuario();
+$usuario->loadByID(8);
+echo $usuario;
+echo "<br/>";
+echo "---------------------------------------------";
+echo "<br/>";
+$usuario->delete();
+echo $usuario;
+echo "<br/><br/>";
 
 ?>
