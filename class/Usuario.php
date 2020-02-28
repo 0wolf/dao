@@ -51,16 +51,76 @@ class Usuario
 	{
 		$sql = new Sql();
 		
-		$results = $sql->select("SELECT * FROM tb_usuarios WHERE id_usuario = :ID", array(":ID"=>$id));
+		$results = $sql->select("SELECT * FROM tb_usuarios WHERE id_usuario = :ID;", array(":ID"=>$id));
 		
 		if (count($results) > 0)
 		{
 			$row = $results[0];
-			$this->setIdUsuario($row['id_usuario']);
-			$this->setLogin($row['login']);
-			$this->setSenha($row['senha']);
-			$this->setDtCadastro(new DateTime($row['dt_cadastro']));
+			$this->setData($results[0]);
 		}
+	}
+
+	public static function getList()
+	{
+		$sql = new Sql();
+
+		return $sql->select("SELECT * FROM tb_usuarios ORDER BY id_usuario;");
+	}
+
+	public static function search($login)
+	{
+		$sql = new Sql();
+
+		return $sql->select("SELECT * FROM tb_usuarios WHERE login LIKE :SEARCH ORDER BY id_usuario;", array(":SEARCH"=>"%" . $login . "%"));
+
+	}
+
+	public function login($login, $senha)
+	{
+		$sql = new Sql();
+
+		$results = $sql->select("SELECT * FROM tb_usuarios WHERE login = :LOGIN AND senha = :SENHA;", array(":LOGIN"=>$login, ":SENHA"=>$senha));
+		
+		if (count($results) > 0)
+		{
+			$row = $results[0];
+			$this->setData($results[0]);
+		}
+		else
+		{
+			throw new Exception("Login e/ou Senha inválidos.");
+		}
+	}
+
+	public function setData($data)
+	{
+		$this->setIdUsuario($data['id_usuario']);
+		$this->setLogin($data['login']);
+		$this->setSenha($data['senha']);
+		$this->setDtCadastro(new DateTime($data['dt_cadastro']));
+	}
+
+	public function insert()
+	{
+		$sql = new Sql();
+		$results = $sql->select("CALL sp_usuarios_insert(:LOGIN, :PASSWORD)", array(':LOGIN'=>$this->getLogin(),':PASSWORD'=>$this->getSenha()));
+		if (count($results) > 0)
+		{
+			$this->setData($results[0]);
+		}
+	}
+
+	public function update($login, $senha)
+	{
+		$this->setLogin($login);
+		$this->setSenha($senha);
+
+		$sql = new Sql();
+		$sql->query("UPDATE tb_usuarios SET login = :LOGIN, senha = :SENHA WHERE id_usuario = :ID;", array(
+			':LOGIN'=>$this->getLogin(),
+			':SENHA'=>$this->getSenha(),
+			':ID'=>$this->getIdUsuario()
+		));
 	}
 
 	public function __toString()
@@ -74,5 +134,14 @@ class Usuario
 	}
 
 }
+
+/*
+USE dbphp7;
+CREATE PROCEDURE 'sp_usuarios_insert' (plogin VARCHAR(64), psenha VARCHAR(256))
+BEGIN
+	INSERT INTO tb_usuarios (login, senha) VALUES (plogin, psenha);
+    SELECT * FROM tb_usuarios WHERE id_usuario = LAST_INSERT_ID();
+END;
+*/
 
 ?>
